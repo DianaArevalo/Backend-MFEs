@@ -12,3 +12,18 @@
  * - Las reglas de negocio corresponden a PKG_SEGURIDAD.
  * - Este repository se encarga únicamente de la comunicación con Oracle.
  */
+
+export class AccessUpdateRepository {
+  constructor(private readonly oracleClient: any) {}
+
+  async updateAccess(accessId: string, data: any): Promise<any> {
+    const result = await this.oracleClient.execute(
+      "BEGIN PKG_SEGURIDAD.SP_UPDATE_ACCESO(:accessId, :data); END;",
+      {
+        accessId,
+        data
+      }
+    );
+    return result;
+  }
+}
