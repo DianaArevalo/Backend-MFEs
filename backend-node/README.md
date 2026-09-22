@@ -1,13 +1,25 @@
 # NUTRIA — Backend Node.js
 
+> 🎓 **Taller práctico de desarrollo de software**
+>
+> Este proyecto forma parte del taller práctico **NUTRIA**, desarrollado con
+> fines académicos y de aprendizaje para aplicar conceptos de arquitectura
+> distribuida, desarrollo de microservicios e integración con Oracle PL/SQL.
+>
+> **No corresponde a un sistema productivo ni a una implementación real de
+> una organización.** Las tecnologías, dominios y decisiones de arquitectura
+> se utilizan como parte del alcance definido para el taller.
+
 ## Responsabilidad
 
-Backend Node.js del sistema **NUTRIA** encargado de dos dominios:
+Este backend Node.js corresponde a uno de los microservicios del taller
+**NUTRIA** y está encargado de dos dominios:
 
 - **Seguridad**: usuarios, roles, permisos, accesos y autenticación/autorización.
 - **Afiliados**: gestión, consulta, actualización y activación/desactivación de afiliados.
 
-La lógica de negocio permanece centralizada en Oracle/PL-SQL. Este backend funciona como capa de exposición, integración y transformación de datos.
+La lógica de negocio permanece centralizada en Oracle/PL-SQL. Este backend
+funciona como capa de exposición, integración y transformación de datos.
 
 ## Paquetes Oracle
 
