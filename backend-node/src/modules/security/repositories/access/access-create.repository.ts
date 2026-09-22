@@ -13,3 +13,17 @@
  * - La lógica de negocio y sus validaciones corresponden a PKG_SEGURIDAD.
  * - Este repository se encarga únicamente de la comunicación con Oracle.
  */
+
+export class AccessCreateRepository {
+  constructor(private readonly oracleClient: any) {}
+
+  async createAccess(data: any): Promise<any> {
+    const result = await this.oracleClient.execute(
+      "BEGIN PKG_SEGURIDAD.SP_ADD_ACCESO(:data); END;",
+      {
+        data,
+      },
+    );
+    return result;
+  }
+}

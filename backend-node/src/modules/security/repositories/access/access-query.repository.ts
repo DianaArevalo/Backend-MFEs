@@ -16,3 +16,38 @@
  * - Este repository se encarga de ejecutar SPs/funciones y transformar
  *   el resultado de Oracle cuando sea necesario.
  */
+
+export class AccessQueryRepository {
+  constructor(private readonly oracleClient: any) {}
+  
+  async getAccessesByRole(roleId: string): Promise<any> {
+    const result = await this.oracleClient.execute(
+      "BEGIN PKG_SEGURIDAD.SP_GET_ACCESOS_ROL(:roleId); END;",
+      {
+        roleId
+      }
+    );
+    return result;
+  }
+
+  async hasRole(accessId: string, roleId: string): Promise<boolean> {
+    const result = await this.oracleClient.execute(
+      "BEGIN PKG_SEGURIDAD.FN_TIENE_ROL(:accessId, :roleId); END;",
+      {
+        accessId,
+        roleId
+      }
+    );
+    return result;
+  }
+
+  async getRoleByAccess(accessId: string): Promise<any> {
+    const result = await this.oracleClient.execute(
+      "BEGIN PKG_SEGURIDAD.FN_ROL_ACCESO(:accessId); END;",
+      {
+        accessId
+      }
+    );
+    return result;
+  }
+}
