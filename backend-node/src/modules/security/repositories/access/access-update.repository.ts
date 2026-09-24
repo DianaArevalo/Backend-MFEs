@@ -13,8 +13,10 @@
  * - Este repository se encarga únicamente de la comunicación con Oracle.
  */
 
+import { OracleClient } from '../../../../infrastructure/database/oracle/oracle.client';
+
 export class AccessUpdateRepository {
-  constructor(private readonly oracleClient: any) {}
+  constructor(private readonly oracleClient: OracleClient) {}
 
   async updateAccess(accessId: string, data: any): Promise<any> {
     const result = await this.oracleClient.execute(

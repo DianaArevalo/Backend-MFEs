@@ -17,9 +17,11 @@
  *   el resultado de Oracle cuando sea necesario.
  */
 
+import { OracleClient } from '../../../../infrastructure/database/oracle/oracle.client';
+
 export class AccessQueryRepository {
-  constructor(private readonly oracleClient: any) {}
-  
+  constructor(private readonly oracleClient: OracleClient) {}
+
   async getAccessesByRole(roleId: string): Promise<any> {
     const result = await this.oracleClient.execute(
       "BEGIN PKG_SEGURIDAD.SP_GET_ACCESOS_ROL(:roleId); END;",
@@ -38,7 +40,7 @@ export class AccessQueryRepository {
         roleId
       }
     );
-    return result;
+    return result as unknown as boolean;
   }
 
   async getRoleByAccess(accessId: string): Promise<any> {

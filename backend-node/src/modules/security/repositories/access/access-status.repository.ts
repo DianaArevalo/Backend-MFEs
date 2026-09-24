@@ -16,8 +16,10 @@
  */
 
 
+import { OracleClient } from '../../../../infrastructure/database/oracle/oracle.client';
+
 export class AccessStatusRepository {
-  constructor(private readonly oracleClient: any) {}
+  constructor(private readonly oracleClient: OracleClient) {}
 
   async enableAccess(accessId: string): Promise<any> {
     const result = await this.oracleClient.execute(
