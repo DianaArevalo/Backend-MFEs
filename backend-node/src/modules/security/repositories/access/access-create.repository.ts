@@ -15,7 +15,7 @@
  */
 
 import { OracleClient } from "../../../../infrastructure/database/oracle/oracle.client";
-import oracledb from 'oracledb';
+import oracledb from "oracledb";
 
 export interface CreateAccessRepositoryData {
   nombre_usuario: string;
@@ -26,28 +26,24 @@ export interface CreateAccessRepositoryData {
 }
 
 export class AccessCreateRepository {
-  constructor(
-    private readonly oracleClient: OracleClient,
-  ) {}
+  constructor(private readonly oracleClient: OracleClient) {}
 
-  async createAccess(
-    data: CreateAccessRepositoryData,
-  ): Promise<number> {
+  async createAccess(data: CreateAccessRepositoryData): Promise<number> {
     const result = await this.oracleClient.execute<{
-  P_ACCESO_ID: number;
-}>(
+      P_ACCESO_ID: number;
+    }>(
       `
-        BEGIN
-          PKG_SEGURIDAD.SP_ADD_ACCESO(
-            :P_NOMBRE_USUARIO,
-            :P_CONTRASENA_HASH,
-            :P_ROL_ID,
-            :P_AFILIADO_ID,
-            :P_EMPRESA_ID,
-            :P_ACCESO_ID
-          );
-        END;
-      `,
+    BEGIN
+      PKG_SEGURIDAD.SP_ADD_ACCESO(
+        :P_NOMBRE_USUARIO,
+        :P_CONTRASENA_HASH,
+        :P_ROL_ID,
+        :P_AFILIADO_ID,
+        :P_EMPRESA_ID,
+        :P_ACCESO_ID
+      );
+    END;
+  `,
       {
         P_NOMBRE_USUARIO: data.nombre_usuario,
         P_CONTRASENA_HASH: data.contrasena_hash,
@@ -58,6 +54,9 @@ export class AccessCreateRepository {
           dir: oracledb.BIND_OUT,
           type: oracledb.NUMBER,
         },
+      },
+      {
+        autoCommit: true,
       },
     );
 
