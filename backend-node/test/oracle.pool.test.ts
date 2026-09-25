@@ -1,5 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+vi.mock('dotenv', () => ({
+  default: {
+    config: () => undefined,
+  },
+}));
+
 const ORACLE_ENV_VARS = [
   'ORACLE_USER',
   'ORACLE_PASSWORD',
