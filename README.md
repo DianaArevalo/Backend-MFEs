@@ -604,37 +604,35 @@ Las solicitudes posteriores utilizan **JWT** para mantener el contexto de autent
 
 # 🌳 Estructura del repositorio
 
+> ℹ️ **Nota de estado:** El proyecto está en desarrollo. Las carpetas marcadas como *(planificado)* aún no existen en el repositorio actual.
+
 ```text
 NUTRIA/
 │
-├── 📁 frontend/
-│   └── Next.js
+├── 📁 frontend/                *(planificado)*  — Next.js
 │
-├── 📁 gateway/
-│   └── API Gateway / BFF
+├── 📁 gateway/                 *(planificado)*  — API Gateway / BFF
 │
-├── 📁 backend-node/
-│   └── Seguridad + Afiliados
+├── 📁 backend-node/            — Seguridad + Afiliados  (✓ existe)
+│   └── README.md
 │
-├── 📁 backend-java/
-│   └── Empresas + Aportes + Historial
+├── 📁 backend-java/            *(planificado)*  — Empresas + Aportes + Historial
 │
-├── 📁 backend-dotnet/
-│   └── Pensiones
+├── 📁 backend-dotnet/          *(planificado)*  — Pensiones
 │
-├── 📁 database/
-│   ├── tables/
-│   ├── sequences/
-│   ├── constraints/
-│   ├── triggers/
-│   ├── packages/
-│   └── seed/
+├── 📁 database/                — Scripts/Seeds
+│   └── seeds/                  (✓ existe)
+│   ├── tables/                 *(planificado)*
+│   ├── sequences/              *(planificado)*
+│   ├── constraints/            *(planificado)*
+│   ├── triggers/               *(planificado)*
+│   ├── packages/               *(planificado)*
+│   └── scripts/                *(planificado)*
 │
-├── 📁 docs/
-│   └── architecture.png
+├── 📁 docs/                    *(planificado)*  — architecture.png
 │
-├── 📄 .gitignore
-└── 📄 README.md
+├── 📄 .gitignore               (✓ existe)
+└── 📄 README.md                (✓ existe)
 ```
 
 ---
