@@ -349,6 +349,19 @@ KEYCLOAK_AUDIENCE=nutria-api
 
 No se almacenan credenciales reales en el repositorio.
 
+### Creacion y aprovisionamiento de accesos
+
+`POST /api/security/access` recibe `keycloak_user_id` (el `sub` de una
+identidad ya existente en Keycloak), `rol_id` y, opcionalmente,
+`afiliado_id` y `empresa_id`. El backend envÃ­a esos datos a
+`PKG_SEGURIDAD.SP_ADD_ACCESO`; no crea usuarios en Keycloak ni gestiona
+credenciales.
+
+La ruta exige un access token valido y el permiso `ACCESO_CREAR`. El alta de
+la identidad en Keycloak y su vinculacion inicial con Oracle requieren por
+tanto un proceso administrativo separado. Ese aprovisionamiento no forma
+parte de este endpoint.
+
 ## Instalación
 
 ```bash

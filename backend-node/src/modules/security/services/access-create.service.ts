@@ -1,4 +1,3 @@
-import bcrypt from 'bcrypt';
 import { CreateAccessDto } from '../dto/create-access.dto';
 import {
   AccessCreateRepository,
@@ -11,11 +10,8 @@ export class AccessCreateService {
   ) {}
 
   async createAccess(data: CreateAccessDto): Promise<number> {
-    const contrasenaHash = await bcrypt.hash(data.contrasena, 10);
-
     const repositoryData: CreateAccessRepositoryData = {
-      nombre_usuario: data.nombre_usuario,
-      contrasena_hash: contrasenaHash,
+      keycloak_user_id: data.keycloak_user_id,
       rol_id: data.rol_id,
       afiliado_id: data.afiliado_id,
       empresa_id: data.empresa_id,

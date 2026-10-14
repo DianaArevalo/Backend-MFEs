@@ -18,8 +18,7 @@ import { OracleClient } from "../../../../infrastructure/database/oracle/oracle.
 import oracledb from "oracledb";
 
 export interface CreateAccessRepositoryData {
-  nombre_usuario: string;
-  contrasena_hash: string;
+  keycloak_user_id: string;
   rol_id: number;
   afiliado_id?: number;
   empresa_id?: number;
@@ -35,8 +34,7 @@ export class AccessCreateRepository {
       `
     BEGIN
       PKG_SEGURIDAD.SP_ADD_ACCESO(
-        :P_NOMBRE_USUARIO,
-        :P_CONTRASENA_HASH,
+        :P_KEYCLOAK_USER_ID,
         :P_ROL_ID,
         :P_AFILIADO_ID,
         :P_EMPRESA_ID,
@@ -45,8 +43,7 @@ export class AccessCreateRepository {
     END;
   `,
       {
-        P_NOMBRE_USUARIO: data.nombre_usuario,
-        P_CONTRASENA_HASH: data.contrasena_hash,
+        P_KEYCLOAK_USER_ID: data.keycloak_user_id,
         P_ROL_ID: data.rol_id,
         P_AFILIADO_ID: data.afiliado_id ?? null,
         P_EMPRESA_ID: data.empresa_id ?? null,
