@@ -20,4 +20,10 @@ export const config = {
       increment: process.env.ORACLE_POOL_INCREMENT,
     },
   },
+  keycloak: {
+    url: process.env.KEYCLOAK_URL,
+    realm: process.env.KEYCLOAK_REALM,
+    issuer: process.env.KEYCLOAK_ISSUER,
+    audience: process.env.KEYCLOAK_AUDIENCE,
+  },
 };

@@ -162,6 +162,7 @@ Express
 pnpm
 node-oracledb (Thin mode)
 Oracle/PLSQL
+jose (validación de JWT/Keycloak)
 ```
 
 ## Estructura
@@ -205,6 +206,119 @@ backend-node/
 └── README.md
 ```
 
+## Autenticación y autorización con Keycloak + Oracle
+
+El flujo es: **Keycloak autentica → Node valida el JWT → Oracle determina
+roles/permisos → Node aplica la autorización**.
+
+La validación de access tokens vive en `src/shared/middleware/auth.middleware.ts`
+y expone el middleware reutilizable `authenticateToken`. No se aplica de forma
+global: debe incorporarse explícitamente a las rutas que lo requieran.
+
+`authenticateToken`:
+
+- exige `Authorization: Bearer <token>`;
+- valida firma, `issuer`, `audience`, expiración y la existencia de un `sub`
+  no vacío con `jwtVerify` y `createRemoteJWKSet` de `jose`;
+- responde `401` cuando el token falta, está mal formado, es inválido o expiró;
+- responde `503` de forma controlada si no puede recuperarse el JWKS;
+- adjunta `req.user` con el tipo `AuthenticatedUser`
+  (`{ keycloakUserId: string }`) únicamente después de validar el token;
+- no expone tokens, claves ni detalles internos en las respuestas.
+
+### Autorización por permisos de Oracle
+
+La autorización de negocio se resuelve contra Oracle a partir de
+`req.user.keycloakUserId`:
+
+- `src/modules/security/repositories/access/access-authorization.repository.ts`
+  resuelve el `ACCESO` por `ACCESO.KEYCLOAK_USER_ID` y comprueba el permiso a
+  través de la relación `ACCESO → ROL → ROL_PERMISO → PERMISO`.
+- `src/modules/security/services/access-authorization.service.ts` distingue
+  `NOT_LINKED` (autenticado sin acceso), `DISABLED` (acceso deshabilitado) y
+  `ENABLED`.
+- `src/modules/security/middleware/authorization.middleware.ts` expone el
+  middleware reutilizable `requirePermission(permission, service)`.
+
+```ts
+import { authenticateToken } from '../../shared/middleware/auth.middleware';
+import { requirePermission } from '../middleware/authorization.middleware';
+
+router.post(
+  '/access',
+  authenticateToken,
+  requirePermission('ACCESO_CREAR', accessAuthorizationService),
+  asyncHandler((req, res) => controller.createAccess(req, res)),
+);
+```
+
+`requirePermission` responde:
+
+- `401` si la request no tiene identidad autenticada (`req.user`);
+- `403` si el usuario está autenticado pero no tiene `ACCESO`, el `ACCESO` está
+  deshabilitado o no posee el permiso requerido;
+- `503` si Oracle (dependencia de autorización) no está disponible.
+
+Los nombres de permiso usados por las rutas son los del bootstrap de seguridad
+(`database/seeds/security-bootstrap.sql`): `ACCESO_CREAR`, `ACCESO_CONSULTAR`,
+`ACCESO_ACTUALIZAR`, `ACCESO_HABILITAR`, `ACCESO_DESHABILITAR`.
+
+### Contrato Oracle requerido (estado real del repositorio)
+
+> **Verificación realizada:** en el repositorio actual **no existe** DDL de las
+> tablas ni el código fuente de `PKG_SEGURIDAD` (solo
+> `database/seeds/security-bootstrap.sql`). Por tanto, no fue posible verificar
+> la firma de procedimientos ni la existencia física de
+> `ACCESO.KEYCLOAK_USER_ID` en el esquema versionado.
+
+Para que la autorización funcione, el esquema de Oracle debe cumplir:
+
+1. `ACCESO.KEYCLOAK_USER_ID` existe y almacena el `sub` del token de Keycloak
+   (`SP_ADD_ACCESO` debe persistirlo; ya no se usan contraseñas propias).
+2. Estados de `ACCESO`: el servicio considera habilitado el valor `ACTIVO`
+   (mismo criterio que `ROL` y `PERMISO` en el bootstrap). Confirmar este valor
+   si `SP_ENABLE_ACCESO` / `SP_DISABLE_ACCESO` usan otro.
+3. Las tablas `PERMISO` (`NOMBRE`, `ESTADO`) y `ROL_PERMISO`
+   (`ROL_ID`, `PERMISO_ID`) existen según el bootstrap.
+
+Las consultas de autorización se implementaron como lectura directa
+(parametrizada) porque **no existe** un procedimiento/función apropiado en
+`PKG_SEGURIDAD` para resolver el acceso por `KEYCLOAK_USER_ID` ni para
+comprobar permisos (solo existen `SP_GET_ACCESOS_ROL`, `FN_TIENE_ROL` y
+`FN_ROL_ACCESO`, que operan por `acceso_id`/`rol_id`). **No se inventaron
+firmas PL/SQL.** Cuando Oracle exponga funciones dedicadas (p. ej. una consulta
+de acceso por `KEYCLOAK_USER_ID` y una verificación de permiso), el repository
+debe sustituir el SQL directo por esas llamadas.
+
+### Configuración
+
+La configuración se centraliza en `src/shared/config/config.ts` y se valida /
+deriva en `src/shared/config/keycloak.config.ts` (el endpoint JWKS se construye
+como `${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/certs`,
+sin duplicar URLs).
+
+```text
+KEYCLOAK_URL=http://localhost:8080
+KEYCLOAK_REALM=nutria
+KEYCLOAK_ISSUER=http://localhost:8080/realms/nutria
+KEYCLOAK_AUDIENCE=nutria-api
+```
+
+Configuración requerida en Keycloak (realm `nutria`):
+
+- El realm debe firmar los access tokens con el algoritmo `RS256` (es el valor
+  aceptado por `authenticateToken`; si el realm usa `PS256`, `ES256`, etc., hay
+  que actualizar `ALLOWED_ALGORITHMS` en `auth.middleware.ts`).
+- El access token **debe** incluir en `aud` el valor de `KEYCLOAK_AUDIENCE`
+  (`nutria-api`). Por defecto Keycloak puede emitir `aud: "account"`; para
+  corregirlo hay que añadir un *Audience mapper* (en el cliente o en un client
+  scope) que agregue `nutria-api` a `aud`. La validación de audience **no** se
+  desactiva: si el token no trae la audiencia esperada, la petición se rechaza
+  con `401`.
+
+La identidad validada (`req.user.keycloakUserId`) todavía no se persiste. La
+integración con `ACCESO.KEYCLOAK_USER_ID` (columna de Oracle) es un pendiente.
+
 ## Configuración
 
 Copiar `.env.example` a `.env` y ajustar los valores según el entorno.
@@ -222,6 +336,11 @@ ORACLE_PASSWORD=
 ORACLE_POOL_MIN=0
 ORACLE_POOL_MAX=10
 ORACLE_POOL_INCREMENT=1
+
+KEYCLOAK_URL=http://localhost:8080
+KEYCLOAK_REALM=nutria
+KEYCLOAK_ISSUER=http://localhost:8080/realms/nutria
+KEYCLOAK_AUDIENCE=nutria-api
 ```
 
 > `ORACLE_SERVICE_NAME` se acepta como alternativa a `ORACLE_SERVICE`.
